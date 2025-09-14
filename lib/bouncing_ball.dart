@@ -41,7 +41,7 @@ class BouncingBall extends StatefulWidget {
   /// Default: `true`
   final bool isCircle;
 
-  /// The timestep (dt) used for physics updates.
+  /// The timeStep (dt) used for physics updates.
   /// Smaller values = smoother but slower motion, larger values = faster motion.
   ///
   /// Default: `2`

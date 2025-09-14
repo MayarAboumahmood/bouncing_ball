@@ -1,20 +1,19 @@
 name: bouncing_ball
-description: "A new Flutter package project."
+description: "A simple physics engine for ball movement with gravity, friction, and elasticity."
 version: 0.0.1
-homepage:
+homepage: https://github.com/MayarAboumahmood/bouncing_ball
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  vector_math: ^2.1.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  vector_math: ^2.1.4
 
 flutter:

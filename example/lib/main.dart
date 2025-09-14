@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
             blockers: [
               PositionedBlocker(
                 x: 100,
-                y: 300,
+                y: 600,
                 width: 100,
                 height: 100,
                 child: Container(

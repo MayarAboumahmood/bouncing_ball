@@ -1,39 +1,30 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Bouncing Ball
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+A simple Flutter widget that simulates a bouncing ball with physics.  
+Supports gravity, friction, elasticity, and obstacles (blockers). Works with circle or square balls
+and allows interactive dragging.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+---
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- ✅ Gravity – ball falls naturally.
+- ✅ Friction – slows down horizontal and vertical motion over time.
+- ✅ Elasticity – bounces off walls and blockers.
+- ✅ Blockers – rectangular widgets that the ball can collide with.
+- ✅ Circle or square shapes.
+- ✅ Interactive – push the ball using drag gestures.
+- ✅ Configurable ball size, gravity, friction, and timestep (`dt`).
 
-## Getting started
+---
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+## Installation
 
-## Usage
+Add the package to your `pubspec.yaml`:
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+```yaml
+dependencies:
+  bouncing_ball: last_version
 
-```dart
-const like = 'sample';
-```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+## License
+This package is licensed under the MIT License. See the LICENSE file for details.

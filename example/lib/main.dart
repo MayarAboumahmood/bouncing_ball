@@ -14,10 +14,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       home: Scaffold(
         body: Center(
           child: BouncingBall(
+            backgroundWidget: Container(color: Colors.blueGrey),
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
             gravity: 0.2,
@@ -27,7 +27,10 @@ class MyApp extends StatelessWidget {
             ballSize: ballHeightAndWidth * 0.9,
             ball: Container(
               decoration: BoxDecoration(
-                color: Colors.greenAccent,
+                image: DecorationImage(
+                  image: AssetImage('assets/images/ball.png'),
+                ),
+                // color: Colors.greenAccent,
                 shape: BoxShape.circle,
               ),
               height: ballHeightAndWidth,
@@ -37,6 +40,7 @@ class MyApp extends StatelessWidget {
               PositionedBlocker(
                 x: 100,
                 y: 600,
+                isCircle: true,
                 width: 100,
                 height: 100,
                 child: Container(

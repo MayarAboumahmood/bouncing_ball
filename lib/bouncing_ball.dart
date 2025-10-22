@@ -10,6 +10,8 @@ import "package:vector_math/vector_math_64.dart" show Vector2;
 /// A widget that simulates a bouncing ball inside a given area.
 /// The ball can be pushed by dragging (onPanUpdate) and collides with blockers.
 class BouncingBall extends StatefulWidget {
+  final Widget? backgroundWidget;
+
   /// The width of the bouncing area.
   final double width;
 
@@ -59,6 +61,7 @@ class BouncingBall extends StatefulWidget {
     required this.height,
     required this.ballSize,
     this.gravity,
+    this.backgroundWidget,
     this.friction,
     this.ball,
     this.isCircle = true,
@@ -89,7 +92,7 @@ class _BouncingBallState extends State<BouncingBall> {
       setState(() {
         physics.update(
           Size(widget.width, widget.height),
-          widget.blockers.map((b) => b.rect).toList(),
+          widget.blockers,
           widget.dt,
         );
       });
@@ -114,12 +117,13 @@ class _BouncingBallState extends State<BouncingBall> {
         color: Colors.grey.shade200,
         child: Stack(
           children: [
+            widget.backgroundWidget ?? SizedBox(),
+
             // Ball
             Positioned(
               left: physics.position.x,
               top: physics.position.y,
-              child:
-                  widget.ball ??
+              child: widget.ball ??
                   Container(
                     width: widget.ballSize,
                     height: widget.ballSize,
@@ -142,6 +146,8 @@ class _BouncingBallState extends State<BouncingBall> {
 
 /// Represents an obstacle that the ball can collide with.
 class PositionedBlocker {
+  final bool isCircle;
+
   /// The X coordinate of the blocker’s top-left corner.
   final double x;
 
@@ -159,6 +165,7 @@ class PositionedBlocker {
 
   /// Creates a rectangular blocker positioned at (x, y).
   const PositionedBlocker({
+    this.isCircle = false,
     required this.x,
     required this.y,
     required this.width,

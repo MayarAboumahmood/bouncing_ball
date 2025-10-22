@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import "package:vector_math/vector_math_64.dart" show Vector2;
 
+import '../bouncing_ball.dart';
+
 class BallPhysics {
   Vector2 position;
   Vector2 changingInPosition;
@@ -22,7 +24,7 @@ class BallPhysics {
     this.elasticity = 0.8,
   }) : changingInPosition = changingInPosition ?? Vector2(2, 2);
 
-  void update(Size area, List<Rect> blockers, double dt) {
+  void update(Size area, List<PositionedBlocker> blockers, double dt) {
     // Apply gravity
     changingInPosition.y += gravity;
 
@@ -52,93 +54,143 @@ class BallPhysics {
     changingInPosition.y += forceY / 6;
   }
 
-  void _checkBlockers(List<Rect> blockers) {
-    if (!isCircle) {
-      final ballRect = Rect.fromLTWH(position.x, position.y, size, size);
-
-      for (final blocker in blockers) {
-        if (ballRect.overlaps(blocker)) {
-          final overlapX = min(
-            (ballRect.right - blocker.left).abs(),
-            (ballRect.left - blocker.right).abs(),
-          );
-          final overlapY = min(
-            (ballRect.bottom - blocker.top).abs(),
-            (ballRect.top - blocker.bottom).abs(),
-          );
-
-          if (overlapX < overlapY) {
-            // Horizontal collision
-            if (ballRect.center.dx < blocker.center.dx) {
-              position.x = blocker.left - size;
-              changingInPosition.x = -changingInPosition.x * elasticity;
-            } else {
-              position.x = blocker.right;
-              changingInPosition.x = -changingInPosition.x * elasticity;
-            }
-          } else {
-            // Vertical collision
-            if (ballRect.center.dy < blocker.center.dy) {
-              position.y = blocker.top - size;
-              changingInPosition.y = -changingInPosition.y * elasticity;
-            } else {
-              position.y = blocker.bottom;
-              changingInPosition.y = -changingInPosition.y * elasticity;
-            }
-          }
-        }
+  void _checkBlockers(List<PositionedBlocker> blockers) {
+    for (final blocker in blockers) {
+      if (isCircle && blocker.isCircle) {
+        _handleCircleVsCircle(blocker);
+      } else if (isCircle && !blocker.isCircle) {
+        _handleCircleVsRect(blocker.rect);
+      } else if (!isCircle && blocker.isCircle) {
+        _handleRectVsCircle(blocker);
+      } else {
+        buildNormalBallLogic(blockers);
       }
-    } else {
-      // ✅ Circle vs Rect
-      final radius = size / 2;
-      final cx = position.x + radius;
-      final cy = position.y + radius;
+    }
+  }
 
-      for (final blocker in blockers) {
-        final closestX = cx.clamp(blocker.left, blocker.right);
-        final closestY = cy.clamp(blocker.top, blocker.bottom);
+  void _handleCircleVsCircle(PositionedBlocker blocker) {
+    final radius = size / 2;
+    final cx = position.x + radius;
+    final cy = position.y + radius;
 
-        final dxCircle = cx - closestX;
-        final dyCircle = cy - closestY;
-        final distanceSquared = dxCircle * dxCircle + dyCircle * dyCircle;
+    final bx = blocker.x + blocker.width / 2;
+    final by = blocker.y + blocker.height / 2;
+    final br = blocker.width / 2; // assume circular blocker width = height
 
-        if (distanceSquared < radius * radius) {
-          if (dxCircle.abs() > dyCircle.abs()) {
-            // Horizontal bounce
-            if (cx < blocker.center.dx) {
-              position.x = blocker.left - size;
-              changingInPosition.x =
-                  changingInPosition.x - 0.1; // bounce to left // push left
-            } else {
-              position.x = blocker.right;
-              changingInPosition.x = changingInPosition.x + 0.1; // push right
-            }
+    final dx = cx - bx;
+    final dy = cy - by;
+    final distance = sqrt(dx * dx + dy * dy);
+    final minDistance = radius + br;
+
+    if (distance < minDistance && distance > 0) {
+      // Overlap
+      final overlap = (minDistance - distance);
+      final nx = dx / distance;
+      final ny = dy / distance;
+
+      // Push out
+      position.x += nx * overlap;
+      position.y += ny * overlap;
+
+      // Reflect velocity
+      final dot = changingInPosition.x * nx + changingInPosition.y * ny;
+      changingInPosition.x -= 2 * dot * nx * elasticity;
+      changingInPosition.y -= 2 * dot * ny * elasticity;
+    }
+  }
+
+  void _handleCircleVsRect(Rect blocker) {
+    final radius = size / 2;
+    final cx = position.x + radius;
+    final cy = position.y + radius;
+
+    final closestX = cx.clamp(blocker.left, blocker.right);
+    final closestY = cy.clamp(blocker.top, blocker.bottom);
+
+    final dx = cx - closestX;
+    final dy = cy - closestY;
+    final distanceSquared = dx * dx + dy * dy;
+
+    if (distanceSquared < radius * radius) {
+      final distance = sqrt(distanceSquared);
+      final nx = dx / (distance == 0 ? 1 : distance);
+      final ny = dy / (distance == 0 ? 1 : distance);
+
+      // Push out
+      final overlap = radius - distance;
+      position.x += nx * overlap;
+      position.y += ny * overlap;
+
+      // Reflect velocity
+      final dot = changingInPosition.x * nx + changingInPosition.y * ny;
+      changingInPosition.x -= 2 * dot * nx * elasticity;
+      changingInPosition.y -= 2 * dot * ny * elasticity;
+    }
+  }
+
+  void _handleRectVsCircle(PositionedBlocker blocker) {
+    final ballRect = Rect.fromLTWH(position.x, position.y, size, size);
+    final bx = blocker.x + blocker.width / 2;
+    final by = blocker.y + blocker.height / 2;
+    final br = blocker.width / 2;
+
+    // Find closest point on rect to circle center
+    final closestX = bx.clamp(ballRect.left, ballRect.right);
+    final closestY = by.clamp(ballRect.top, ballRect.bottom);
+
+    final dx = bx - closestX;
+    final dy = by - closestY;
+    final distanceSq = dx * dx + dy * dy;
+
+    if (distanceSq < br * br) {
+      final dist = sqrt(distanceSq);
+      final nx = dx / (dist == 0 ? 1 : dist);
+      final ny = dy / (dist == 0 ? 1 : dist);
+      final overlap = br - dist;
+
+      // Push out
+      position.x -= nx * overlap;
+      position.y -= ny * overlap;
+
+      // Reflect velocity
+      final dot = changingInPosition.x * nx + changingInPosition.y * ny;
+      changingInPosition.x -= 2 * dot * nx * elasticity;
+      changingInPosition.y -= 2 * dot * ny * elasticity;
+    }
+  }
+
+
+  void buildNormalBallLogic(List<PositionedBlocker> blockers) {
+    final ballRect = Rect.fromLTWH(position.x, position.y, size, size);
+
+    for (final blocker in blockers) {
+      if (ballRect.overlaps(blocker.rect)) {
+        final overlapX = min(
+          (ballRect.right - blocker.rect.left).abs(),
+          (ballRect.left - blocker.rect.right).abs(),
+        );
+        final overlapY = min(
+          (ballRect.bottom - blocker.rect.top).abs(),
+          (ballRect.top - blocker.rect.bottom).abs(),
+        );
+
+        if (overlapX < overlapY) {
+          // Horizontal collision
+          if (ballRect.center.dx < blocker.rect.center.dx) {
+            position.x = blocker.rect.left - size;
+            changingInPosition.x = -changingInPosition.x * elasticity;
           } else {
-            // Vertical bounce
-            if (cy < blocker.center.dy) {
-              position.y = blocker.top - size;
-              changingInPosition.y = -changingInPosition.y * elasticity;
-              if (cx <= blocker.left) {
-                // ball at left edge → push left
-                changingInPosition.x =
-                    changingInPosition.x - 0.1; // bounce to left
-              } else if (cx >= blocker.right) {
-                // ball at right edge → push right
-                changingInPosition.x = changingInPosition.x + 0.1;
-              }
-            } else {
-              position.y = blocker.bottom;
-              if (cx <= blocker.left) {
-                // ball at left edge → push left
-                changingInPosition.x =
-                    changingInPosition.x - 0.1; // bounce to left
-              } else if (cx >= blocker.right) {
-                // ball at right edge → push right
-                changingInPosition.x = changingInPosition.x + 0.1;
-              }
-              changingInPosition.y =
-                  changingInPosition.y.abs() * elasticity; // push down
-            }
+            position.x = blocker.rect.right;
+            changingInPosition.x = -changingInPosition.x * elasticity;
+          }
+        } else {
+          // Vertical collision
+          if (ballRect.center.dy < blocker.rect.center.dy) {
+            position.y = blocker.rect.top - size;
+            changingInPosition.y = -changingInPosition.y * elasticity;
+          } else {
+            position.y = blocker.rect.bottom;
+            changingInPosition.y = -changingInPosition.y * elasticity;
           }
         }
       }

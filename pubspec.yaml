@@ -1,6 +1,6 @@
 name: bouncing_ball
 description: "A simple physics engine for ball movement with gravity, friction, and elasticity."
-version: 0.0.1
+version: 1.0.0
 homepage: https://github.com/MayarAboumahmood/bouncing_ball
 
 environment:

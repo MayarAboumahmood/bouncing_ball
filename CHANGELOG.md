@@ -6,3 +6,10 @@
 - Ball can be pushed interactively via drag gestures.
 - Added support for blockers (rectangular obstacles) that the ball can collide with.
 - Configurable ball size, gravity, friction, and timestep (`dt`).
+
+
+## 1.0.0 - 2025-10-22
+
+- Added circle vs circle collision
+- Added rectangle vs circle collision
+- Refactored `_checkBlockers` logic
